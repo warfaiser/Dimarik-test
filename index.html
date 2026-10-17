@@ -10,9 +10,161 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./bundle/app.css" data-static-bundle />
+    <style>
+      /* Убираем мерцание экрана */
+      .grain::before {
+        display: none !important;
+        animation: none !important;
+      }
+      .animate-flicker {
+        animation: none !important;
+        opacity: 1 !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        var RANK_IMAGES = {
+          "Смешарик вселенной Marvel": "public/images/rank-1.jpg",
+          "Стажёр Щ.И.Т.": "public/images/rank-2.jpg",
+          "Мститель": "public/images/rank-3.jpg",
+          "Страж Мультивселенной": "public/images/rank-4.jpg",
+          "Пейнкиллер": "public/images/rank-5.jpg"
+        };
+
+        var savedVol = localStorage.getItem("marvel_quiz_music_volume");
+        var userVolume = savedVol !== null ? parseFloat(savedVol) : 0.38;
+        if (isNaN(userVolume) || userVolume < 0 || userVolume > 1) userVolume = 0.38;
+        var userLockedVol = savedVol !== null;
+        var bgAudio = null;
+
+        var origVolDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "volume");
+        var OrigAudio = window.Audio;
+        window.Audio = function (src) {
+          var a = new OrigAudio(src);
+          if (src && String(src).toLowerCase().indexOf("portals") !== -1) {
+            bgAudio = a;
+            if (origVolDesc && origVolDesc.set) {
+              Object.defineProperty(a, "volume", {
+                get: function () {
+                  return origVolDesc.get.call(this);
+                },
+                set: function (v) {
+                  var target = userLockedVol ? userVolume : v;
+                  origVolDesc.set.call(this, Math.max(0, Math.min(1, target)));
+                },
+                configurable: true
+              });
+              origVolDesc.set.call(a, userVolume);
+            }
+          }
+          return a;
+        };
+        window.Audio.prototype = OrigAudio.prototype;
+
+        function setMusicVolume(vol) {
+          userVolume = Math.max(0, Math.min(1, vol));
+          userLockedVol = true;
+          try {
+            localStorage.setItem("marvel_quiz_music_volume", String(userVolume));
+          } catch (e) {}
+          if (bgAudio && origVolDesc && origVolDesc.set) {
+            origVolDesc.set.call(bgAudio, userVolume);
+            if (userVolume > 0 && bgAudio.paused) {
+              bgAudio.play().catch(function () {});
+            }
+          }
+          var label = document.getElementById("mq-vol-label");
+          if (label) label.textContent = Math.round(userVolume * 100) + "%";
+          var slider = document.getElementById("mq-vol-slider");
+          if (slider && Number(slider.value) !== Math.round(userVolume * 100)) {
+            slider.value = String(Math.round(userVolume * 100));
+          }
+        }
+
+        function applyEnhancements() {
+          /* 1. Ползунок громкости музыки в правом нижнем углу */
+          var musicWrap = document.querySelector("div.fixed.right-5.bottom-5");
+          if (musicWrap && !document.getElementById("mq-vol-box")) {
+            musicWrap.style.flexDirection = "row";
+            musicWrap.style.alignItems = "center";
+            var box = document.createElement("div");
+            box.id = "mq-vol-box";
+            box.style.cssText =
+              "display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:9999px;background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(12px);";
+            box.innerHTML =
+              '<span style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;">🔊</span>' +
+              '<input id="mq-vol-slider" type="range" min="0" max="100" value="' +
+              Math.round(userVolume * 100) +
+              '" style="width:88px;height:6px;cursor:pointer;accent-color:#fbbf24;" />' +
+              '<span id="mq-vol-label" style="font-family:monospace;font-size:11px;font-weight:700;color:#fcd34d;min-width:32px;text-align:right;">' +
+              Math.round(userVolume * 100) +
+              "%</span>";
+            musicWrap.insertBefore(box, musicWrap.firstChild);
+            var slider = document.getElementById("mq-vol-slider");
+            if (slider) {
+              slider.addEventListener("input", function (e) {
+                setMusicVolume(Number(e.target.value) / 100);
+              });
+            }
+          }
+
+          /* 2. Картинки рангов во вкладке «Ранги» */
+          var titles = document.querySelectorAll("p.font-display");
+          for (var i = 0; i < titles.length; i++) {
+            var p = titles[i];
+            var text = (p.textContent || "").trim();
+            var imgUrl = RANK_IMAGES[text];
+            if (imgUrl) {
+              var card = p.closest(".group");
+              if (card) {
+                var iconBox = card.querySelector("div.shrink-0");
+                if (iconBox && !iconBox.dataset.rankImg) {
+                  iconBox.dataset.rankImg = "1";
+                  iconBox.style.width = "56px";
+                  iconBox.style.height = "56px";
+                  iconBox.style.padding = "2px";
+                  iconBox.style.overflow = "hidden";
+                  iconBox.innerHTML =
+                    '<img src="' +
+                    imgUrl +
+                    '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px;background:#06060b;" />';
+                }
+              }
+            }
+          }
+
+          /* 3. Картинка ранга на финальном экране результата */
+          var h2s = document.querySelectorAll("h2.font-display");
+          for (var j = 0; j < h2s.length; j++) {
+            var h2 = h2s[j];
+            var h2Text = (h2.textContent || "").trim();
+            var rUrl = RANK_IMAGES[h2Text];
+            if (rUrl && h2.parentElement) {
+              var heroBox = h2.parentElement.querySelector(".animate-floaty");
+              if (heroBox && !heroBox.dataset.rankImg) {
+                heroBox.dataset.rankImg = "1";
+                heroBox.style.width = "160px";
+                heroBox.style.height = "160px";
+                heroBox.style.padding = "3px";
+                heroBox.style.overflow = "hidden";
+                heroBox.style.borderRadius = "24px";
+                heroBox.innerHTML =
+                  '<img src="' +
+                  rUrl +
+                  '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:21px;background:#06060b;" />';
+              }
+            }
+          }
+        }
+
+        var obs = new MutationObserver(applyEnhancements);
+        obs.observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener("DOMContentLoaded", applyEnhancements);
+      })();
+    </script>
     <script type="module" src="./bundle/app.js" data-static-bundle></script>
   </body>
 </html>
