@@ -82,7 +82,17 @@ export default function ResultScreen({
       transition={{ duration: 0.5, ease: EASE }}
       className="relative min-h-dvh overflow-hidden"
     >
-      <img src="images/hero-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.12]" />
+      <img
+        src="images/hero-bg.jpg"
+        onError={(e) => {
+          if (!e.currentTarget.dataset.fb) {
+            e.currentTarget.dataset.fb = "1";
+            e.currentTarget.src = "public/images/hero-bg.jpg";
+          }
+        }}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-[0.12]"
+      />
       <div className="absolute inset-0 bg-gradient-to-b from-[#06060b]/60 via-[#06060b]/85 to-[#06060b]" />
       <Starfield density={90} />
       <Confetti pieces={score >= 22 ? 190 : score >= 15 ? 120 : score >= 8 ? 70 : 35} />
@@ -145,6 +155,12 @@ export default function ResultScreen({
         >
           <img
             src="images/artifact.jpg"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fb) {
+                e.currentTarget.dataset.fb = "1";
+                e.currentTarget.src = "public/images/artifact.jpg";
+              }
+            }}
             alt=""
             className="pointer-events-none absolute -right-10 -bottom-16 w-64 opacity-25 [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]"
           />

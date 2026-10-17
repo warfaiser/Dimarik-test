@@ -196,7 +196,17 @@ export default function QuizScreen({
       className="relative min-h-dvh overflow-hidden"
     >
       {/* background */}
-      <img src="images/hero-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.10]" />
+      <img
+        src="images/hero-bg.jpg"
+        onError={(e) => {
+          if (!e.currentTarget.dataset.fb) {
+            e.currentTarget.dataset.fb = "1";
+            e.currentTarget.src = "public/images/hero-bg.jpg";
+          }
+        }}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-[0.10]"
+      />
       <div
         className={`absolute inset-0 transition-colors duration-1000 ${
           phase === 1

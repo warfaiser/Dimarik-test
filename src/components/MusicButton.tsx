@@ -27,7 +27,7 @@ export default function MusicButton() {
             className="glass rounded-xl border-amber-300/20 px-4 py-2.5 text-[11px] leading-relaxed text-amber-200"
           >
             Файл не найден. Добавь{" "}
-            <span className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-amber-100">public/music/portals.mp3</span>
+            <span className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-amber-100">public/music/Portals.mp3</span>
           </motion.div>
         )}
       </AnimatePresence>
