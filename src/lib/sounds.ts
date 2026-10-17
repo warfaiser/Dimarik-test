@@ -13,7 +13,7 @@ export type SoundKind = "correct" | "wrong";
 
 export const SOUND_FILES: Record<SoundKind, string[]> = {
   wrong: ["sounds/wrong-1.mp3", "sounds/wrong-2.mp3", "sounds/wrong-3.mp3"],
-  correct: ["sounds/correct-1.mp3", "sounds/correct-2.mp3", "sounds/correct-3.mp3"],
+  correct: ["sounds/correct-4.mp3", "sounds/correct-5.mp3", "sounds/correct-6.mp3"],
 };
 
 export const SOUND_LABELS: { url: string; label: string; kind: SoundKind }[] = [
@@ -25,6 +25,7 @@ class SoundEngine {
   private ctx: AudioContext | null = null;
   private rotation: Record<SoundKind, number> = { correct: 0, wrong: 0 };
   private availability = new Map<string, boolean>();
+  private resolvedUrls = new Map<string, string>();
   private probed = false;
   private _muted = false;
 
@@ -52,13 +53,26 @@ class SoundEngine {
     const all = [...SOUND_FILES.wrong, ...SOUND_FILES.correct];
     await Promise.all(
       all.map(async (url) => {
-        try {
-          const res = await fetch(url, { method: "HEAD" });
-          const type = res.headers.get("content-type") || "";
-          this.availability.set(url, res.ok && !type.includes("text/html"));
-        } catch {
-          this.availability.set(url, false);
+        const candidates = [url, `public/${url}`];
+        if (url.includes("correct-")) {
+          const alt = url.replace("correct-4", "correct-1").replace("correct-5", "correct-2").replace("correct-6", "correct-3");
+          if (alt !== url) candidates.push(alt, `public/${alt}`);
         }
+        let found = false;
+        for (const candidate of candidates) {
+          try {
+            const res = await fetch(candidate, { method: "HEAD" });
+            const type = res.headers.get("content-type") || "";
+            if (res.ok && !type.includes("text/html")) {
+              this.resolvedUrls.set(url, candidate);
+              found = true;
+              break;
+            }
+          } catch {
+            // пробуем следующий путь
+          }
+        }
+        this.availability.set(url, found);
       })
     );
     return this.availability;
@@ -74,9 +88,10 @@ class SoundEngine {
     const i = this.rotation[kind];
     this.rotation[kind] = (i + 1) % 3;
     const url = SOUND_FILES[kind][i];
+    const targetUrl = this.resolvedUrls.get(url) ?? url;
 
     if (this.availability.get(url) === true) {
-      const audio = new Audio(url);
+      const audio = new Audio(targetUrl);
       audio.volume = 0.85;
       audio.onerror = () => {
         this.availability.set(url, false);
@@ -85,7 +100,7 @@ class SoundEngine {
       audio.play().catch(() => this.synth(kind, i));
     } else {
       // файла нет (или ещё не проверен) — пробуем проиграть, иначе синтез
-      const audio = new Audio(url);
+      const audio = new Audio(targetUrl);
       audio.volume = 0.85;
       let fellBack = false;
       audio.onerror = () => {

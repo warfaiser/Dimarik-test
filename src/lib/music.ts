@@ -12,13 +12,19 @@ import { useEffect, useReducer } from "react";
  * без фоновой музыки, кнопка покажет подсказку.
  */
 
-const SRC = "music/portals.mp3";
+const SRC_CANDIDATES = [
+  "music/Portals.mp3",
+  "public/music/Portals.mp3",
+  "music/portals.mp3",
+  "public/music/portals.mp3",
+];
 
 class MusicEngine {
   private audio: HTMLAudioElement | null = null;
   private fadeIv: number | null = null;
   private listeners = new Set<() => void>();
   private wantPlay = false;
+  private src = SRC_CANDIDATES[0];
 
   available: boolean | null = null; // null — ещё не проверяли
   playing = false;
@@ -39,13 +45,21 @@ class MusicEngine {
       if (this.wantPlay && this.available) this.play();
       return this.available;
     }
-    try {
-      const res = await fetch(SRC, { method: "HEAD" });
-      const type = res.headers.get("content-type") || "";
-      this.available = res.ok && !type.includes("text/html");
-    } catch {
-      this.available = false;
+    let found = false;
+    for (const candidate of SRC_CANDIDATES) {
+      try {
+        const res = await fetch(candidate, { method: "HEAD" });
+        const type = res.headers.get("content-type") || "";
+        if (res.ok && !type.includes("text/html")) {
+          this.src = candidate;
+          found = true;
+          break;
+        }
+      } catch {
+        // пробуем следующий вариант
+      }
     }
+    this.available = found;
     if (this.available) this.prepare();
     this.emit();
     if (this.wantPlay && this.available) this.play();
@@ -54,7 +68,7 @@ class MusicEngine {
 
   private prepare() {
     if (this.audio) return;
-    this.audio = new Audio(SRC);
+    this.audio = new Audio(this.src);
     this.audio.loop = true;
     this.audio.volume = 0;
     this.audio.preload = "auto";

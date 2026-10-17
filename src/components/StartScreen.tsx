@@ -91,6 +91,12 @@ export default function StartScreen({
       {/* background */}
       <img
         src="images/hero-bg.jpg"
+        onError={(e) => {
+          if (!e.currentTarget.dataset.fb) {
+            e.currentTarget.dataset.fb = "1";
+            e.currentTarget.src = "public/images/hero-bg.jpg";
+          }
+        }}
         alt=""
         className="absolute inset-0 h-full w-full scale-105 object-cover opacity-45"
       />
@@ -338,7 +344,7 @@ export default function StartScreen({
                     <div className="flex items-center gap-3 rounded-xl border border-white/7 bg-white/[0.03] px-4 py-3">
                       <Music className="h-4 w-4 shrink-0 text-white/40" />
                       <span className="min-w-0 flex-1 truncate text-xs text-white/70">
-                        <span className="font-mono text-white/90">music/portals.mp3</span>
+                        <span className="font-mono text-white/90">music/Portals.mp3</span>
                         <span className="text-white/35"> · Фоновая музыка — Portals («Мстители: Финал»)</span>
                       </span>
                       {musicAvailable ? (
