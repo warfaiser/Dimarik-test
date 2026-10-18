@@ -26,7 +26,7 @@ Edit `survival-config.json` before starting:
 
 - `server.host`, `port`: Java server address and port.
 - `server.username`: bot nickname for offline mode; Microsoft account email when using Microsoft auth. Use a unique nickname and log out of any other player already using it.
-- `server.version`: leave `false` for auto-detection or set the exact Java server version.
+- `server.version`: leave `false` for auto-detection. If setting it manually, use the server's exact supported version—not just the version selected in your launcher.
 - `server.auth`: `offline` only for an offline-mode/private server; use `microsoft` for online mode.
 - `server.authMe`: when `true`, the bot prompts for its AuthMe password with terminal input hidden. The password is not written to config or logs. Do not send it in chat; rotate it if it has been shared.
 - `home.x/y/z`: base/work center. The example uses the mining point from your screenshot: 2343, 51, -2002.
