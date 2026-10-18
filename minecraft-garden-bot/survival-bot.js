@@ -67,6 +67,9 @@ let cycleTimer;
 let home = vec(config.home);
 const radius = config.limits.radius;
 let nightTransitionHandled = false;
+let authMeStarted = false;
+let authMeFailed = false;
+let authMeTask = Promise.resolve();
 
 bot.on('time', () => {
   const night = isNight();
@@ -658,6 +661,25 @@ async function authenticateAuthMe() {
   await sleep(2500);
 }
 
+function startAuthMeLogin() {
+  if (!config.server.authMe || authMeStarted) return;
+  authMeStarted = true;
+  authMeTask = authenticateAuthMe().catch((error) => {
+    authMeFailed = true;
+    console.error(`AuthMe login could not be started: ${error.message}`);
+    bot.quit('AuthMe login required');
+  });
+}
+
+// AuthMe may hold the player before Mineflayer emits `spawn`, so prompt as
+// soon as the protocol enters the logged-in state, not from the spawn handler.
+bot.once('login', startAuthMeLogin);
+bot.on('messagestr', (message) => {
+  if (config.server.authMe && /authme|\/login|log in|please login|войдите|авториз/i.test(message)) {
+    startAuthMeLogin();
+  }
+});
+
 bot.once('spawn', async () => {
   home = vec(config.home);
   const movement = new Movements(bot);
@@ -665,13 +687,9 @@ bot.once('spawn', async () => {
   movement.allow1by1towers = false;
   bot.pathfinder.setMovements(movement);
   console.log(`Connected as ${bot.username}.`);
-  try {
-    await authenticateAuthMe();
-  } catch (error) {
-    console.error(`AuthMe login could not be started: ${error.message}`);
-    bot.quit('AuthMe login required');
-    return;
-  }
+  startAuthMeLogin();
+  await authMeTask;
+  if (authMeFailed) return;
   console.log(`Survival bot active; work radius ${radius} blocks around home.`);
   await runCycle();
   const delay = Math.max(5, Number(config.limits.cycleDelaySeconds) || 12) * 1000;
