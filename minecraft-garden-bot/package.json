@@ -1,0 +1,20 @@
+{
+  "name": "minecraft-garden-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A Mineflayer survival bot for Minecraft Java Edition.",
+  "scripts": {
+    "start": "node survival-bot.js",
+    "garden": "node bot.js",
+    "survival": "node survival-bot.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "mineflayer": "^4.32.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "vec3": "^0.1.10"
+  }
+}

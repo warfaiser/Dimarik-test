@@ -7,3 +7,7 @@ https://warfaiser.github.io/Dimarik-test/
 - **Умный звук**: Ротация звуков и легендарный трек "Portals".
 - **Система рангов**: От «Смешарика» до «Пейнкиллера».
 - **Защита от промахов**: Подтверждение ответа кнопкой.
+
+## Minecraft survival bot
+
+An independent Mineflayer bot is available in [`minecraft-garden-bot/`](minecraft-garden-bot/). Setup and configuration instructions are in that directory's README.

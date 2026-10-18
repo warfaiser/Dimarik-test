@@ -1,0 +1,42 @@
+{
+  "server": {
+    "host": "s5.joinserver.xyz",
+    "port": 25883,
+    "version": "26.3",
+    "auth": "offline",
+    "username": "Vasya",
+    "authMe": true
+  },
+  "home": {
+    "x": 2343,
+    "y": 51,
+    "z": -2002,
+    "bed": {
+      "x": 2345,
+      "y": 51,
+      "z": -2002
+    },
+    "storageChest": {
+      "x": 2341,
+      "y": 51,
+      "z": -2002
+    },
+    "craftingTable": {
+      "x": 2343,
+      "y": 51,
+      "z": -2001
+    },
+    "furnace": {
+      "x": 2343,
+      "y": 51,
+      "z": -2003
+    }
+  },
+  "limits": {
+    "radius": 24,
+    "minY": 5,
+    "maxY": 90,
+    "cycleDelaySeconds": 12
+  },
+  "foodFarm": null
+}

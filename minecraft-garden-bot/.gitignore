@@ -1,0 +1,5 @@
+config.json
+survival-config.json
+node_modules/
+auth-cache/
+profiles/
